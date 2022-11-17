@@ -15,4 +15,9 @@ export class MalfiniController {
   async getProductAvailabilities() {
     return this.malfiniService.getProductAvailabilities();
   }
+
+  @Get('products/prices')
+  async getProductPrices() {
+    return this.malfiniService.getProductPrices();
+  }
 }

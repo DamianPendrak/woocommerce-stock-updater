@@ -7,7 +7,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { ProductAvailability } from './types/products';
+import { ProductAvailability, ProductPrice } from './types/products';
 import { Cache } from 'cache-manager';
 
 @Injectable()
@@ -43,6 +43,32 @@ export class MalfiniService {
         ),
     );
     await this.cacheManager.set('availabilities', data, 25 * 60 * 1000);
+    return data;
+  }
+
+  async getProductPrices(): Promise<ProductPrice[]> {
+    const prices = await this.cacheManager.get<ProductPrice[]>('prices');
+
+    if (prices) {
+      return prices;
+    }
+
+    const accessToken = await this.authService.getAccessToken();
+    const { data } = await firstValueFrom(
+      this.httpService
+        .get(`${process.env.MALFINI_API_URL}v4/product/prices`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+        .pipe(
+          catchError((e) => {
+            console.log(e);
+            throw new HttpException(e.response.data, e.response.status);
+          }),
+        ),
+    );
+    await this.cacheManager.set('prices', data, 25 * 60 * 1000);
     return data;
   }
 }
