@@ -18,21 +18,43 @@ export class StockUpdateConsumer {
 
   @Process()
   async transcode(job: Job<StockUpdateJob>) {
-    const attributesListWithStocks =
+    const variantsListWithStocks =
       await this.malfiniService.getProductAvailabilities();
+    const variantsListWithPrices = await this.malfiniService.getProductPrices();
     const productVariations =
       await this.woocommerceService.getProductVariations(job.data.productId);
 
     const variantsWithUpdatedStocks = productVariations.map((variant) => {
-      const variantToUpdate = attributesListWithStocks.find(
+      const variantWithQuantity = variantsListWithStocks.find(
         (stock) => stock.productSizeCode === variant.sku,
       );
 
-      if (variantToUpdate) {
-        return {
-          id: variant.id,
-          stock_quantity: variantToUpdate.quantity,
-        };
+      const updateVariantData: {
+        id: string;
+        stock_quantity: number;
+        regular_price?: string;
+      } = {
+        id: variant.id,
+        stock_quantity: 0,
+      };
+
+      if (variantWithQuantity) {
+        updateVariantData.stock_quantity = variantWithQuantity.quantity;
+
+        const variantWithPrice = variantsListWithPrices.find(
+          (variant2) =>
+            variant2.productSizeCode === variantWithQuantity.productSizeCode,
+        );
+
+        if (variantWithPrice) {
+          updateVariantData.regular_price = (
+            variantWithPrice.price * parseFloat(process.env.PRICE_MULTIPLIER)
+          )
+            .toFixed(2)
+            .toString();
+        }
+
+        return updateVariantData;
       }
 
       return {

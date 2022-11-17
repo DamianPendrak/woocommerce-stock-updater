@@ -16,7 +16,7 @@ export class ProductsListConsumer {
   @Process()
   async transcode(job: Job<ProductsListJob>) {
     const products = await this.woocommerceService.getProducts(
-      10,
+      1,
       job.data.page,
     );
 
@@ -27,9 +27,9 @@ export class ProductsListConsumer {
         });
       });
 
-      await this.listProductsQueue.add({
-        page: job.data.page + 1,
-      });
+      // await this.listProductsQueue.add({
+      //   page: job.data.page + 1,
+      // });
     }
 
     return {};
