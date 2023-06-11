@@ -76,7 +76,9 @@ export class StockUpdateConsumer {
   @OnQueueActive()
   onActive(job: Job<StockUpdateJob>) {
     console.log(
-      `Processing job ${job.id} of type ${job.name} with data ${job.data?.productId}...`,
+      `Processing job ${job.id} of type ${job.name} with data ${JSON.stringify(
+        job.data?.productId,
+      )}...`,
     );
   }
 
