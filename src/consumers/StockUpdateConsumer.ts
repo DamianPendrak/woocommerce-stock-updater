@@ -26,7 +26,9 @@ export class StockUpdateConsumer {
 
     const variantsWithUpdatedStocks = productVariations.map((variant) => {
       const variantWithQuantity = variantsListWithStocks.find(
-        (stock) => stock.productSizeCode === variant.sku,
+        (stock) =>
+          stock.productSizeCode === variant.sku &&
+          new Date(stock.date).getTime() <= new Date().getTime(),
       );
 
       const updateVariantData: {
