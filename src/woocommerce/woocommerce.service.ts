@@ -29,7 +29,7 @@ export class WoocommerceService {
     return data;
   }
 
-  async getProductVariations(productId: string, perPage = 100, page = 1) {
+  async getProductVariations(productId: string, perPage = 500, page = 1) {
     const { data } = await firstValueFrom(
       this.httpService
         .get(
@@ -58,6 +58,7 @@ export class WoocommerceService {
       stock_quantity: number;
     }[],
   ) {
+    console.log(variations);
     const { data } = await firstValueFrom(
       this.httpService
         .post(
