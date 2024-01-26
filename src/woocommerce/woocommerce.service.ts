@@ -58,7 +58,6 @@ export class WoocommerceService {
       stock_quantity: number;
     }[],
   ) {
-    console.log(variations);
     const { data } = await firstValueFrom(
       this.httpService
         .post(
