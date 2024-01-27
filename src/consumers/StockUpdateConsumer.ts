@@ -21,55 +21,67 @@ export class StockUpdateConsumer {
     const variantsListWithStocks =
       await this.malfiniService.getProductAvailabilities();
     const variantsListWithPrices = await this.malfiniService.getProductPrices();
-    const productVariations =
-      await this.woocommerceService.getProductVariations(job.data.productId);
 
-    const variantsWithUpdatedStocks = productVariations.map((variant) => {
-      const variantWithQuantity = variantsListWithStocks.find(
-        (stock) =>
-          stock.productSizeCode === variant.sku &&
-          new Date(stock.date).getTime() <= new Date().getTime(),
-      );
-
-      const updateVariantData: {
-        id: string;
-        stock_quantity: number;
-        regular_price?: string;
-      } = {
-        id: variant.id,
-        stock_quantity: 0,
-      };
-
-      if (variantWithQuantity) {
-        updateVariantData.stock_quantity = variantWithQuantity.quantity;
-
-        const variantWithPrice = variantsListWithPrices.find(
-          (variant2) =>
-            variant2.productSizeCode === variantWithQuantity.productSizeCode,
+    for (let page = 1; page <= job.data.variantsCount; page++) {
+      const productVariations =
+        await this.woocommerceService.getProductVariations(
+          job.data.productId,
+          page,
+          50,
         );
 
-        if (variantWithPrice) {
-          updateVariantData.regular_price = (
-            variantWithPrice.price * parseFloat(process.env.PRICE_MULTIPLIER)
-          )
-            .toFixed(2)
-            .toString();
+      for (let i = 0; i < productVariations.length; i += 50) {
+        const batch = productVariations.slice(i, i + 50);
+        const variantsWithUpdatedStocks = batch.map((variant) => {
+          const variantWithQuantity = variantsListWithStocks.find(
+            (stock) =>
+              stock.productSizeCode === variant.sku &&
+              new Date(stock.date).getTime() <= new Date().getTime(),
+          );
+
+          const updateVariantData: {
+            id: string;
+            stock_quantity: number;
+            regular_price?: string;
+          } = {
+            id: variant.id,
+            stock_quantity: 0,
+          };
+
+          if (variantWithQuantity) {
+            updateVariantData.stock_quantity = variantWithQuantity.quantity;
+
+            const variantWithPrice = variantsListWithPrices.find(
+              (variant2) =>
+                variant2.productSizeCode ===
+                variantWithQuantity.productSizeCode,
+            );
+
+            if (variantWithPrice) {
+              updateVariantData.regular_price = (
+                variantWithPrice.price *
+                parseFloat(process.env.PRICE_MULTIPLIER)
+              )
+                .toFixed(2)
+                .toString();
+            }
+
+            return updateVariantData;
+          }
+
+          return {
+            id: variant.id,
+            stock_quantity: 0,
+          };
+        });
+
+        if (variantsWithUpdatedStocks && variantsWithUpdatedStocks.length > 0) {
+          await this.woocommerceService.updateVariations(
+            job.data.productId,
+            variantsWithUpdatedStocks,
+          );
         }
-
-        return updateVariantData;
       }
-
-      return {
-        id: variant.id,
-        stock_quantity: 0,
-      };
-    });
-
-    if (variantsWithUpdatedStocks && variantsWithUpdatedStocks.length > 0) {
-      await this.woocommerceService.updateVariations(
-        job.data.productId,
-        variantsWithUpdatedStocks,
-      );
     }
 
     return {};

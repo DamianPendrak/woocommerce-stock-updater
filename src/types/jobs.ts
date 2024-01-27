@@ -4,4 +4,5 @@ export type ProductsListJob = {
 
 export type StockUpdateJob = {
   productId: string;
+  variantsCount: number;
 };

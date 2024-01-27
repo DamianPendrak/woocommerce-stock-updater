@@ -20,10 +20,18 @@ export class ProductsListConsumer {
       job.data.page,
     );
 
+    console.log('page');
+    console.log(job.data.page);
+
     if (products && products.length > 0) {
       await products.forEach((product) => {
+        console.log('product');
+        console.log(product.id);
+        console.log(product.name);
+        console.log('-------------');
         this.stockUpdateQueue.add({
           productId: product.id,
+          variantsCount: product.variations.length,
         });
       });
 

@@ -8,6 +8,8 @@ export class WoocommerceService {
   constructor(private readonly httpService: HttpService) {}
 
   async getProducts(perPage = 10, page = 1) {
+    console.log('page');
+    console.log(page);
     const { data } = await firstValueFrom(
       this.httpService
         .get(
@@ -29,7 +31,7 @@ export class WoocommerceService {
     return data;
   }
 
-  async getProductVariations(productId: string, perPage = 500, page = 1) {
+  async getProductVariations(productId: string, page = 1, perPage = 50) {
     const { data } = await firstValueFrom(
       this.httpService
         .get(
@@ -58,6 +60,9 @@ export class WoocommerceService {
       stock_quantity: number;
     }[],
   ) {
+    console.log('update variations');
+    console.log(productId);
+    console.log(variations);
     const { data } = await firstValueFrom(
       this.httpService
         .post(
